@@ -10,11 +10,14 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Scanner;
 import javax.imageio.ImageIO;
-import org.omg.CORBA.CharHolder;
 
 /**
  *
@@ -23,17 +26,23 @@ import org.omg.CORBA.CharHolder;
 public class CharBuilder {
     public static final char REF_CHAR = 'H';
     public static final int  REF_WIDTH = 27;
-    public final CharPart[] chars;
+    public final ArrayList<CharPart> chars = new ArrayList<CharPart>();
     public final Font font;
     
     public CharBuilder(String fontName, int size, int style) {
         font = new Font(fontName, style, size);
-        chars = new CharPart[Character.MAX_VALUE];
     }
     
-    public CharBuilder(String fileName, String fontName, int size, int style) {
-        this(fontName, style, size);
-        // Load from file
+    public CharBuilder(String fileName) throws FileNotFoundException {
+        Scanner sc = new Scanner(new FileReader(fileName));
+        String fontName = sc.nextLine();
+        int style = sc.nextInt();
+        int size = sc.nextInt();
+        font = new Font(fontName, style, size);
+        while (sc.hasNextLine()) {
+            CharPart cp = new CharPart(sc.next().charAt(0), sc.nextInt(), sc.nextInt(), sc.nextInt(), sc.nextInt());
+            chars.add(cp);
+        }
     }
     
     public void calcCharacters() throws IOException{
@@ -60,6 +69,11 @@ public class CharBuilder {
             }
         }
         wr.close();
+    }
+    
+    public char getChar(CharPart cp) {
+        
+        return '0';
     }
     
     public static void saveImgToFile(String fileName, BufferedImage img) {
