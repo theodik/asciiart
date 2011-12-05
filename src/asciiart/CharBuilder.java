@@ -29,7 +29,7 @@ public class CharBuilder {
      * Referenční znak
      */
     public static final char REF_CHAR = 'H';
-    public static final int REF_VAR = 10;
+    public static final int REF_VAR = 3;
     /**
      * Šířka referenčního znaku.
      */
@@ -92,10 +92,18 @@ public class CharBuilder {
         
         StringBuilder data = new StringBuilder();
         int count = 0;
-        for (char i = 0; i < Character.MAX_VALUE; i++) {
+        for (char i = 1; i < Character.MAX_VALUE; i++) {
+            if (i > 0x1DC0 && i < 0x1DFF)
+                continue;
             int charWidth = fm.charWidth(i);
+            Character.UnicodeBlock ub = Character.UnicodeBlock.of(i);
             //if (font.canDisplay(i)  && (charWidth > REF_WIDTH && charWidth < REF_WIDTH+REF_VAR)) {
-            if(font.canDisplay(i) && charWidth > 0) {
+            if(Character.isValidCodePoint(i) && font.canDisplay(i) && 
+                    !Character.isSpaceChar(i) &&
+                    ub != Character.UnicodeBlock.ARABIC &&
+                    //charWidth > REF_WIDTH-REF_VAR && charWidth < REF_WIDTH+REF_VAR
+                    charWidth > 0
+                    ) {
                 g.setColor(Color.white);
                 g.fillRect(0, 0, img.getWidth(), img.getHeight());
                 g.setColor(Color.black);

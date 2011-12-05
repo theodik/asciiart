@@ -96,10 +96,10 @@ public class ASCIIart {
     
     public static void createArt(BufferedImage img, FileWriter fw) throws IOException{
         int w,h,dx,dy;
-        w = (int)Math.floor(img.getWidth() / CharBuilder.REF_WIDTH);
-        dx = CharBuilder.REF_WIDTH;
-        h = (int)Math.floor(img.getHeight() / CharBuilder.REF_HEIGHT);
-        dy = CharBuilder.REF_HEIGHT;
+        dx = CharBuilder.REF_WIDTH/2;
+        w = (int)Math.floor(img.getWidth() / dx);
+        dy = CharBuilder.REF_HEIGHT/2;
+        h = (int)Math.floor(img.getHeight() / dy);
         int charCount=0, lineCount=0;
         for (int j = 0; j < h; j++) {
             for (int i = 0; i < w; i++) {
