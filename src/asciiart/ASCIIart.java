@@ -1,4 +1,7 @@
 package asciiart;
+/**
+ * Vytvoří ze vstupního obrázku podobný pomocí znaků.
+ */
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -10,7 +13,7 @@ import java.util.Scanner;
 import javax.imageio.ImageIO;
 
 /**
- *
+ * Vytvoří ze vstupního obrázku podobný pomocí znaků.
  * @author theodik
  */
 public class ASCIIart {
@@ -23,8 +26,11 @@ public class ASCIIart {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        // Načteme parametry
         readParams(args);
         
+        // Jestli už existuje nějaký soubor s vygenerovanými znaky, použije se ten
+        // jinak se nejdřív vygenerují znaky
         if (new File(fontName + "_" + size + "_" + style + ".txt").exists()) {
             System.out.println("Načítám data ze souboru: '"+fontName + "_" + size + "_" + style + ".txt'");
             try {
@@ -37,13 +43,16 @@ public class ASCIIart {
             cb = new CharBuilder(fontName, size, style);
             System.out.println("Vytvářím soubor se znaky: "+fontName + "_" + size + "_" + style + ".txt");
             try {
-                cb.calcCharacters(null);
+                int count = cb.calcCharacters();
+                System.out.println("Počet znaků: " + count);
             } catch(IOException e) {
                 System.out.println("Nelze zapsat soubor se znaky: "+e);
                 (new File(fontName + "_" + size + "_" + style + ".txt")).delete();
                 return;
             }
         }
+        
+        // Načte obrázek a převede na grayscale.
         BufferedImage img;
         FileWriter fw;
         try{
@@ -57,6 +66,8 @@ public class ASCIIart {
             System.out.println("Nemohl jsem načíst vstupní obrázek: "+e);
             return;
         }
+        
+        // Vytvoří obrázek pomocí znaků
         try {
             fw = new FileWriter(ofile);
             System.out.println("Vytvářím obrázek...");
@@ -95,13 +106,21 @@ public class ASCIIart {
         }
     }
     
+    /**
+     * Vytváří obrázek ze znaků.
+     * @param img   Předloha v stupních šedi
+     * @param fw    FileWriter kam se budou zapisovat znaky
+     * @throws IOException 
+     */
     public static void createArt(BufferedImage img, FileWriter fw) throws IOException{
+        // Obrázek se rozdělí na jednotlivé oblasti velké jako znak, pro ty se 
+        // spočítá průměrná hodnota a podle ní se najde odpovídající znak
         int w,h,dx,dy;
-        dx = CharBuilder.REF_WIDTH/RATIO;
+        dx = CharBuilder.REF_WIDTH / RATIO;
         w = (int)Math.floor(img.getWidth() / dx);
-        dy = CharBuilder.REF_HEIGHT/RATIO;
+        dy = CharBuilder.REF_HEIGHT / RATIO;
         h = (int)Math.floor(img.getHeight() / dy);
-        int charCount=0, lineCount=0;
+        int charCount=0, lineCount=0; // Info kolik se provede řádků a sloupců
         for (int j = 0; j < h; j++) {
             for (int i = 0; i < w; i++) {
                 int avgColor = CharBuilder.avgColor8bit(img, i*dx, j*dy, (i+1)*dx, (j+1)*dy);
