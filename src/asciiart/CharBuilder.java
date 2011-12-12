@@ -21,7 +21,7 @@ import java.util.Scanner;
 import javax.imageio.ImageIO;
 
 /**
- * Vytvoří a udržuje seznam písmen a jejich průměrných barev.
+ * Vyváří list znaků daného fontu a počítá průměrnou barvu každého znaku. 
  * @author theodik
  */
 public class CharBuilder {
@@ -29,6 +29,9 @@ public class CharBuilder {
      * Referenční znak
      */
     public static final char REF_CHAR = 'H';
+    /**
+     * Tolerance šířky znaku.
+     */
     public static final int REF_VAR = 3;
     /**
      * Šířka referenčního znaku.
@@ -38,6 +41,8 @@ public class CharBuilder {
      * Výška referenčního znaku
      */
     public static int REF_HEIGHT;
+    
+    
     private final HashMap<Character, Integer> chars;
     private final Font font;
     
@@ -54,13 +59,12 @@ public class CharBuilder {
     }
     
     /**
-     * Vytvoří a naplní znaky ze souboru.
+     * Vytvoří a naplní znaky ze souboru (formát souboru z {@linkplain #calcCharacters() calcCharacters})
      * @param fileName Soubor se znaky
      * @throws FileNotFoundException 
      */
     public CharBuilder(String fileName) throws FileNotFoundException {
         Scanner sc = new Scanner(new FileReader(fileName));
-        //sc.useDelimiter("\n *");
         int mapSize = sc.nextInt();
         sc.nextLine();
         String fontName = sc.nextLine();
@@ -79,9 +83,21 @@ public class CharBuilder {
     /**
      * Vytvoří seznam s písmeny, spočítá jejich průměrnou barvu a uloží do souboru
      * v aktuální složce ve formátu <code>fontName_fontSize_fontStyle.txt</code>.
+     * <br/><br/>
+     * Formát souboru (textový formát):
+     * <code><br/>
+     * (int)Počet Znaků\n<br/>
+     * (String)Název fontu\n<br/>
+     * (int)Velikost fontu\n<br/>
+     * (int)Styl fontu\n<br/>
+     * (int)Výška referenčního znaku\n<br/>
+     * (int)Šířka referenčního znaku\n<br/>
+     * (int)Kód znaku \30 (int)Barva<br/>
+     * ...
+     * </code>
      * @throws IOException 
      */
-    public void calcCharacters() throws IOException {
+    public void calcCharacters(CharFilter filter) throws IOException {
         final BufferedImage img = new BufferedImage(font.getSize()*2, font.getSize()*2, BufferedImage.TYPE_BYTE_GRAY);
         final Graphics g = img.getGraphics();
         FontMetrics fm = g.getFontMetrics();
@@ -90,20 +106,24 @@ public class CharBuilder {
         REF_WIDTH = fm.charWidth(REF_CHAR);
         REF_HEIGHT = fm.getHeight();
         
+        if(filter == null) {
+            filter = new CharFilter() {
+                @Override
+                public boolean filter(int character) {
+                    return (Character.isValidCodePoint(character) && font.canDisplay(character) && 
+                        Character.UnicodeBlock.of(character) != Character.UnicodeBlock.ARABIC
+                    );
+                }                
+            };
+        }
+        
         StringBuilder data = new StringBuilder();
         int count = 0;
         for (char i = 1; i < Character.MAX_VALUE; i++) {
             if (i > 0x1DC0 && i < 0x1DFF)
                 continue;
             int charWidth = fm.charWidth(i);
-            Character.UnicodeBlock ub = Character.UnicodeBlock.of(i);
-            //if (font.canDisplay(i)  && (charWidth > REF_WIDTH && charWidth < REF_WIDTH+REF_VAR)) {
-            if(Character.isValidCodePoint(i) && font.canDisplay(i) && 
-                    !Character.isSpaceChar(i) &&
-                    ub != Character.UnicodeBlock.ARABIC &&
-                    //charWidth > REF_WIDTH-REF_VAR && charWidth < REF_WIDTH+REF_VAR
-                    charWidth > 0
-                    ) {
+            if(charWidth > 0 && filter.filter(i)) {
                 g.setColor(Color.white);
                 g.fillRect(0, 0, img.getWidth(), img.getHeight());
                 g.setColor(Color.black);
@@ -149,16 +169,27 @@ public class CharBuilder {
         return ret;
     }
     
-    public static void saveImgToFile(String fileName, BufferedImage img) {
-        try {
-            FileOutputStream os = new FileOutputStream(fileName);
-            ImageIO.write(img, "png", os);
-            os.close();
-        } catch (Exception e) {
-            System.out.println("e = " + e.getLocalizedMessage());
-        }
+    /**
+     * Ukládá obrázek do souboru
+     * @param  fileName Název souboru
+     * @param  img Obrázek, který se ukládá
+     * @throws IOException
+     */
+    public static void saveImgToFile(String fileName, BufferedImage img) throws IOException {
+        FileOutputStream os = new FileOutputStream(fileName);
+        ImageIO.write(img, "png", os);
+        os.close();
     }
     
+    /**
+     * Spočítá průměrnou hodnotu z dané oblasti obrázku.
+     * @param img   Obrázek z kterého se čte
+     * @param x     x souřadnice
+     * @param y     y souřadnice
+     * @param w     šířka oblasti, počítáno x+w
+     * @param h     výška oblasti, počítáno y+h
+     * @return      průměrná barva z oblasti.
+     */
     public static int avgColor(BufferedImage img, int x, int y, int w, int h) {
         int R = 0, G = 0, B = 0;
         for (int i = x; i < w; i++) {
@@ -175,6 +206,16 @@ public class CharBuilder {
         return (R<<16)+(G<<8)+B;
     }
     
+    /**
+     * Stejně jak {@link #avgColor(java.awt.image.BufferedImage, int, int, int, int) avgColor},
+     * ale počítá jen s prvními 8 bity z pixelu.
+     * @param img   Obrázek z kterého se čte
+     * @param x     x souřadnice
+     * @param y     y souřadnice
+     * @param w     šířka oblasti, počítáno x+w
+     * @param h     výška oblasti, počítáno y+h
+     * @return      průměrná barva z oblasti.
+     */
     public static int avgColor8bit(BufferedImage img, int x, int y, int w, int h) {
         int B = 0;
         for (int i = x; i < w; i++) {

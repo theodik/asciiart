@@ -14,6 +14,7 @@ import javax.imageio.ImageIO;
  * @author theodik
  */
 public class ASCIIart {
+    static final int RATIO = 1;
     static CharBuilder cb;
     static String fontName, ifile, ofile;
     static int size, style;
@@ -36,7 +37,7 @@ public class ASCIIart {
             cb = new CharBuilder(fontName, size, style);
             System.out.println("Vytvářím soubor se znaky: "+fontName + "_" + size + "_" + style + ".txt");
             try {
-                cb.calcCharacters();
+                cb.calcCharacters(null);
             } catch(IOException e) {
                 System.out.println("Nelze zapsat soubor se znaky: "+e);
                 (new File(fontName + "_" + size + "_" + style + ".txt")).delete();
@@ -96,9 +97,9 @@ public class ASCIIart {
     
     public static void createArt(BufferedImage img, FileWriter fw) throws IOException{
         int w,h,dx,dy;
-        dx = CharBuilder.REF_WIDTH/2;
+        dx = CharBuilder.REF_WIDTH/RATIO;
         w = (int)Math.floor(img.getWidth() / dx);
-        dy = CharBuilder.REF_HEIGHT/2;
+        dy = CharBuilder.REF_HEIGHT/RATIO;
         h = (int)Math.floor(img.getHeight() / dy);
         int charCount=0, lineCount=0;
         for (int j = 0; j < h; j++) {
