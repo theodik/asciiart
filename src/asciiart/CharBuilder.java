@@ -48,7 +48,7 @@ public class CharBuilder {
     
     /**
      * Vytvoří prázdný seznam písmen.
-     * Naplní se pomocí {@link #calcCharacters(java.lang.String) calcCharacters}
+     * Naplní se pomocí {@link #calcCharacters() calcCharacters}
      * @param fontName Jméno fontu
      * @param size Velikost fontu
      * @param style Styl fontu (0: none, 1: bold, 2: italic)

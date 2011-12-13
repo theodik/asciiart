@@ -23,6 +23,11 @@ public class ASCIIart {
     static int size, style;
 
     /**
+     * První parametr - vstupní obrázek
+     * Druhý parametr - výstupní soubor
+     * Třetí - název fontu
+     * Čtvrtý velikost fontu
+     * Pátý - styl fontu (0: none, 1: bold, 2: italic)
      * @param args the command line arguments
      */
     public static void main(String[] args) {
